@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevTrack Ultimate</title>
+    <style>
+        :root {
+            /* Light Theme */
+            --bg: #f3f4f6; --card-bg: #ffffff; --text: #1f2937; --text-sub: #6b7280;
+            --border: #e5e7eb; --primary: #4f46e5; --accent: #f59e0b; --success: #10b981; --danger: #ef4444;
+            --heat-0: #e5e7eb; --heat-1: #9be9a8; --heat-2: #40c463; --heat-3: #30a14e; --heat-4: #216e39;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg: #0d1117; --card-bg: #161b22; --text: #c9d1d9; --text-sub: #8b949e;
+            --border: #30363d; --primary: #58a6ff; --accent: #d29922; --success: #238636; --danger: #f85149;
+            --heat-0: #161b22; --heat-1: #0e4429; --heat-2: #006d32; --heat-3: #26a641; --heat-4: #39d353;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-top: 110px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Header */
+        .header-container {
+            position: fixed; top: 0; left: 0; right: 0; background: var(--card-bg); padding: 15px 20px;
+            box-shadow: var(--shadow); z-index: 1000; border-bottom: 1px solid var(--border);
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto 10px auto; }
+        h1 { margin: 0; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+        .rank-badge { font-size: 0.8rem; background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; margin-left: 10px; }
+        
+        .toolbar { display: flex; gap: 10px; align-items: center; }
+        .btn { border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { color: var(--danger); background: transparent; }
+
+        /* Progress */
+        .progress-track { width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; max-width: 900px; margin: 0 auto; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s; }
+        .progress-fill.complete { background: var(--success); }
+
+        /* Dashboard Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto 20px auto; }
+        
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+        
+        /* Heatmap */
+        .heatmap-container { margin-top: 15px; }
+        .heatmap-title { font-size: 0.8rem; font-weight: bold; color: var(--text-sub); margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .heatmap-grid { display: flex; gap: 4px; justify-content: space-between; }
+        .heat-cell { width: 100%; height: 25px; border-radius: 2px; background: var(--heat-0); position: relative; }
+        .heat-cell:hover::after {
+            content: attr(data-tooltip); position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: black; color: white; padding: 4px 8px; font-size: 0.7rem; border-radius: 4px; white-space: nowrap; z-index: 10; pointer-events: none;
+        }
+
+        /* Daily Focus */
+        .focus-input { width: 100%; padding: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 6px; margin-top: 5px; }
+        
+        /* Timer */
+        .timer-display { font-size: 2.5rem; font-weight: 800; color: var(--primary); text-align: center; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .timer-controls { display: flex; justify-content: center; gap: 5px; }
+
+        /* Task List */
+        .container { max-width: 900px; margin: 0 auto; }
+        .topic-card { background: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .topic-header { background: var(--bg); padding: 15px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .topic-title { font-weight: 700; color: var(--primary); }
+        
+        .subtopic-container { padding: 0 20px; }
+        .subtopic-header { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid var(--border); margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        
+        .task-item { padding: 10px 0; border-bottom: 1px dashed var(--border); display: flex; flex-direction: column; }
+        .task-row { display: flex; align-items: flex-start; gap: 12px; }
+        .checkbox-custom { width: 18px; height: 18px; margin-top: 3px; cursor: pointer; accent-color: var(--success); }
+        .task-content { flex: 1; }
+        .task-text a { color: var(--primary); text-decoration: none; }
+        .task-meta { margin-top: 5px; font-size: 0.75rem; color: var(--text-sub); display: flex; gap: 10px; align-items: center; }
+        .task-actions { opacity: 0.3; transition: opacity 0.2s; }
+        .task-row:hover .task-actions { opacity: 1; }
+        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0 2px; }
+        
+        .notes-area { display: none; width: 96%; background: #1e1e1e; color: #eee; padding: 10px; border-radius: 6px; margin-top: 10px; font-family: monospace; border: 1px solid #333; }
+        .notes-area.active { display: block; }
+        .completed .task-text { text-decoration: line-through; color: var(--text-sub); }
+
+        /* Footer Quote */
+        .quote-area { text-align: center; font-style: italic; color: var(--text-sub); font-size: 0.9rem; margin-bottom: 40px; opacity: 0.8; }
+
+        /* Confetti */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        
+        @media (max-width: 600px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="header-container">
+        <div class="header-top">
+            <h1>🚀 DevTrack <span class="rank-badge" id="rank-badge">Novice</span></h1>
+            <div class="toolbar">
+                <button class="btn btn-outline" onclick="toggleTheme()" id="theme-btn">🌙</button>
+                <button class="btn btn-outline" onclick="exportData()">💾</button>
+                <label for="import-file" class="btn btn-outline" style="cursor:pointer;">📂</label>
+                <input type="file" id="import-file" style="display:none" onchange="importData(this)">
+            </div>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="global-progress"></div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div style="font-weight:bold; font-size:0.9rem; color:var(--text-sub); text-transform:uppercase;">🎯 Daily Focus</div>
+            <input type="text" id="daily-goal" class="focus-input" placeholder="What is your main goal today?" oninput="saveDaily()">
+            
+            <div class="heatmap-container">
+                <div class="heatmap-title">
+                    <span>Activity (Last 30 Days)</span>
+                    <span id="streak-display">🔥 0 Day Streak</span>
+                </div>
+                <div class="heatmap-grid" id="heatmap"></div>
+            </div>
+        </div>
+
+        <div class="card" style="text-align:center;">
+            <div style="font-weight:bold; font-size:0.8rem; color:var(--text-sub);">POMODORO</div>
+            <div class="timer-display" id="timer-display">25:00</div>
+            <div class="timer-controls">
+                <button class="btn btn-primary" onclick="startTimer()">▶</button>
+                <button class="btn btn-outline" onclick="pauseTimer()">⏸</button>
+                <button class="btn btn-outline" onclick="resetTimer()">↺</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="app"></div>
+
+    <div class="container quote-area" id="quote-display"></div>
+
+    <div class="container" style="margin-bottom: 80px; text-align: center;">
+        <button class="btn btn-primary" onclick="addTopic()">+ Add Topic</button>
+        <br><br>
+        <button class="btn btn-danger" style="font-size:0.8rem" onclick="resetData()">⚠️ Reset All</button>
+    </div>
+
+    <script>
+        // --- CONFIG & DATA ---
+        const quotes = [
+            "First, solve the problem. Then, write the code. - John Johnson",
+            "Experience is the name everyone gives to their mistakes. - Oscar Wilde",
+            "Code is like humor. When you have to explain it, it’s bad. - Cory House",
+            "Fix the cause, not the symptom. - Steve Maguire",
+            "Make it work, make it right, make it fast. - Kent Beck"
+        ];
+        
+        const initialData = [
+            { title: "Responsive Web Design", subtopics: [{ title: "Curriculum", tasks: [{ text: "Certification: https://www.freecodecamp.org/learn/responsive-web-design-v9/", completed: false }]}] },
+            { title: "JavaScript Algorithms", subtopics: [{ title: "Workshops", tasks: [{ text: "MathBot: https://www.freecodecamp.org/learn/javascript-v9/#workshop-mathbot", completed: false }]}] },
+            { title: "Python", subtopics: [{ title: "Core", tasks: [{ text: "Dynamic Programming: https://www.freecodecamp.org/learn/python-v9/#lecture-understanding-dynamic-programming", completed: false }]}] }
+        ];
+
+        let data = JSON.parse(localStorage.getItem('devTrackData')) || initialData;
+        let daily = JSON.parse(localStorage.getItem('devTrackDaily')) || { goal: "", date: "", streak: 0, lastVisit: "" };
+        let darkMode = localStorage.getItem('devTrackTheme') === 'dark';
+        
+        // --- CORE FUNCTIONS ---
+        const save = () => { localStorage.setItem('devTrackData', JSON.stringify(data)); render(); };
+        const linkify = (text) => text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        
+        // --- THEME ---
+        const setTheme = (isDark) => {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-btn').innerText = isDark ? '☀️' : '🌙';
+            localStorage.setItem('devTrackTheme', isDark ? 'dark' : 'light');
+        }
+        setTheme(darkMode);
+        function toggleTheme() { darkMode = !darkMode; setTheme(darkMode); }
+
+        // --- HEATMAP LOGIC ---
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap');
+            container.innerHTML = '';
+            const today = new Date();
+            const taskDates = {};
+
+            // 1. Collect all completed dates
+            data.forEach(t => t.subtopics.forEach(s => s.tasks.forEach(k => {
+                if(k.completed && k.completedDate) {
+                    const d = new Date(k.completedDate).toDateString();
+                    taskDates[d] = (taskDates[d] || 0) + 1;
+                }
+            })));
+
+            // 2. Generate last 30 days
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(today.getDate() - i);
+                const dateStr = d.toDateString();
+                const count = taskDates[dateStr] || 0;
+                
+                const el = document.createElement('div');
+                el.className = 'heat-cell';
+                
+                // Determine Color Intensity (0-4)
+                let intensity = 0;
+                if (count > 0) intensity = 1;
+                if (count > 2) intensity = 2;
+                if (count > 4) intensity = 3;
+                if (count > 6) intensity = 4;
+                
+                el.style.backgroundColor = `var(--heat-${intensity})`;
+                el.setAttribute('data-tooltip', `${dateStr}: ${count} tasks`);
+                container.appendChild(el);
+            }
+        }
+
+        // --- RANK SYSTEM ---
+        function updateRank(pct) {
+            const badge = document.getElementById('rank-badge');
+            let rank = "Novice";
+            if (pct > 20) rank = "Apprentice";
+            if (pct > 50) rank = "Developer";
+            if (pct > 80) rank = "Engineer";
+            if (pct === 100) rank = "Tech Lead";
+            badge.innerText = rank;
+        }
+
+        // --- DAILY & TIMER ---
+        function initDaily() {
+            const today = new Date().toDateString();
+            if (daily.date !== today) {
+                const yest = new Date(); yest.setDate(yest.getDate()-1);
+                if(daily.lastVisit === yest.toDateString()) daily.streak++;
+                else if(daily.lastVisit !== today) daily.streak = 1; // Reset if skipped
+                daily.date = today; daily.lastVisit = today; daily.goal = "";
+                localStorage.setItem('devTrackDaily', JSON.stringify(daily));
+            }
+            document.getElementById('daily-goal').value = daily.goal;
+            document.getElementById('streak-display').innerText = `🔥 ${daily.streak} Day Streak`;
+            document.getElementById('quote-display').innerText = quotes[Math.floor(Math.random() * quotes.length)];
+        }
+        function saveDaily() { daily.goal = document.getElementById('daily-goal').value; localStorage.setItem('devTrackDaily', JSON.stringify(daily)); }
+
+        let timerInt, timeLeft = 1500, isRunning = false;
+        function updateTimer() {
+            const m = Math.floor(timeLeft/60).toString().padStart(2,'0');
+            const s = (timeLeft%60).toString().padStart(2,'0');
+            document.getElementById('timer-display').innerText = `${m}:${s}`;
+            document.title = isRunning ? `(${m}:${s}) DevTrack` : "DevTrack Ultimate";
+        }
+        function startTimer() {
+            if(isRunning) return; isRunning = true;
+            timerInt = setInterval(() => {
+                timeLeft--; updateTimer();
+                if(timeLeft<=0) { clearInterval(timerInt); isRunning=false; alert("Break Time!"); timeLeft=1500; updateTimer(); }
+            }, 1000);
+        }
+        function pauseTimer() { clearInterval(timerInt); isRunning=false; updateTimer(); }
+        function resetTimer() { pauseTimer(); timeLeft=1500; updateTimer(); }
+
+        // --- RENDER APP ---
+        function render() {
+            const app = document.getElementById('app'); app.innerHTML = '';
+            let total = 0, done = 0;
+
+            data.forEach((topic, tIdx) => {
+                const card = document.createElement('div'); card.className = 'topic-card';
+                let html = `<div class="topic-header"><span class="topic-title">${topic.title}</span><div><button class="btn-icon" onclick="renameTopic(${tIdx})">✏️</button><button class="btn-icon" style="color:var(--danger)" onclick="deleteTopic(${tIdx})">🗑️</button></div></div>`;
+                
+                topic.subtopics.forEach((sub, sIdx) => {
+                    html += `<div class="subtopic-container"><div class="subtopic-header"><span>${sub.title}</span><button class="btn btn-outline" style="padding:2px 6px; font-size:0.7rem" onclick="addTask(${tIdx}, ${sIdx})">+ Task</button></div>`;
+                    sub.tasks.forEach((task, kIdx) => {
+                        total++; if(task.completed) done++;
+                        const checked = task.completed ? 'checked' : '';
+                        const status = task.completed ? 'completed' : '';
+                        const date = task.completedDate ? new Date(task.completedDate).toLocaleDateString() : '';
+                        const noteClass = task.showNotes ? 'active' : '';
+                        
+                        html += `<div class="task-item ${status}"><div class="task-row"><input type="checkbox" class="checkbox-custom" onchange="toggleTask(${tIdx}, ${sIdx}, ${kIdx})" ${checked}><div class="task-content"><div class="task-text">${linkify(task.text)}</div><div class="task-meta"><span>${date}</span><div class="task-actions"><button class="btn-icon" onclick="toggleNote(${tIdx}, ${sIdx}, ${kIdx})">📝</button><button class="btn-icon" onclick="editTask(${tIdx}, ${sIdx}, ${kIdx})">✏️</button><button class="btn-icon" style="color:var(--danger)" onclick="deleteTask(${tIdx}, ${sIdx}, ${kIdx})">×</button></div></div></div></div><textarea class="notes-area ${noteClass}" placeholder="Code Snippets..." oninput="updateNote(this, ${tIdx}, ${sIdx}, ${kIdx})">${task.notes || ''}</textarea></div>`;
+                    });
+                    html += `</div>`;
+                });
+                html += `<div style="padding:10px; text-align:center"><button class="btn btn-outline" style="font-size:0.8rem" onclick="addSub(${tIdx})">+ Subtopic</button></div>`;
+                card.innerHTML = html; app.appendChild(card);
+            });
+
+            const pct = total === 0 ? 0 : Math.round((done/total)*100);
+            document.getElementById('global-progress').style.width = `${pct}%`;
+            if(pct === 100) document.getElementById('global-progress').className = 'progress-fill complete';
+            updateRank(pct);
+            renderHeatmap();
+        }
+
+        // --- ACTIONS ---
+        const addTopic = () => { const t = prompt("Topic:"); if(t) { data.push({title: t, subtopics: []}); save(); } };
+        const renameTopic = (i) => { const t = prompt("Rename:", data[i].title); if(t) { data[i].title = t; save(); } };
+        const deleteTopic = (i) => { if(confirm("Delete?")) { data.splice(i, 1); save(); } };
+        const addSub = (i) => { const t = prompt("Subtopic:"); if(t) { data[i].subtopics.push({title: t, tasks: []}); save(); } };
+        const addTask = (i,j) => { const t = prompt("Task:"); if(t) { data[i].subtopics[j].tasks.push({text: t, completed: false}); save(); } };
+        const editTask = (i,j,k) => { const t = prompt("Edit:", data[i].subtopics[j].tasks[k].text); if(t) { data[i].subtopics[j].tasks[k].text = t; save(); } };
+        const deleteTask = (i,j,k) => { if(confirm("Delete?")) { data[i].subtopics[j].tasks.splice(k, 1); save(); } };
+        const toggleTask = (i,j,k) => { 
+            const t = data[i].subtopics[j].tasks[k]; t.completed = !t.completed; 
+            t.completedDate = t.completed ? new Date().toISOString() : null; 
+            if(t.completed) fireConfetti(); save(); 
+        };
+        const toggleNote = (i,j,k) => { data[i].subtopics[j].tasks[k].showNotes = !data[i].subtopics[j].tasks[k].showNotes; save(); };
+        const updateNote = (el,i,j,k) => { data[i].subtopics[j].tasks[k].notes = el.value; localStorage.setItem('devTrackData', JSON.stringify(data)); };
+        const resetData = () => { if(confirm("Reset All?")) { localStorage.clear(); location.reload(); } };
+        const exportData = () => { const a = document.createElement("a"); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); a.download = "devtrack.json"; a.click(); };
+        const importData = (inp) => { const r = new FileReader(); r.onload = e => { data = JSON.parse(e.target.result); save(); alert("Loaded!"); }; r.readAsText(inp.files[0]); };
+
+        // --- CONFETTI ---
+        function fireConfetti() {
+            const ctx = document.getElementById('confetti-canvas').getContext('2d');
+            let w = window.innerWidth, h = window.innerHeight, particles = [];
+            document.getElementById('confetti-canvas').width = w; document.getElementById('confetti-canvas').height = h;
+            for(let i=0; i<50; i++) particles.push({x:Math.random()*w, y:Math.random()*h-h, c:`hsl(${Math.random()*360},100%,50%)`, s:Math.random()*5+2});
+            let op = 1;
+            function loop() {
+                ctx.clearRect(0,0,w,h); op-=0.02;
+                particles.forEach(p => { p.y+=5; ctx.fillStyle=p.c; ctx.globalAlpha=op; ctx.fillRect(p.x,p.y,p.s,p.s); });
+                if(op>0) requestAnimationFrame(loop); else ctx.clearRect(0,0,w,h);
+            } loop();
+        }
+
+        initDaily(); render();
+    </script>
+</body>
+</html>
