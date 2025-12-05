@@ -262,8 +262,19 @@
 
             const pct = globalTotal===0?0:Math.round((globalDone/globalTotal)*100);
             document.getElementById('global-progress').style.width = `${pct}%`;
-            const ranks = ["Novice", "Apprentice", "Developer", "Engineer", "Tech Lead"];
-            document.getElementById('rank-badge').innerText = ranks[Math.floor((pct/101)*5)] || "Novice";
+            const ranks = [
+                "👶 Hello World",       // 0-9%
+                "💻 Script Kiddie",     // 10-19%
+                "🐛 Bug Hunter",        // 20-29%
+                "🛠️ Apprentice",        // 30-39%
+                "☕ Junior Dev",        // 40-49%
+                "🚀 Developer",         // 50-59%
+                "🔥 Senior Dev",        // 60-69%
+                "🏗️ Lead Engineer",     // 70-79%
+                "🏛️ System Architect",  // 80-89%
+                "👑 God Mode"           // 90-100%
+            ];
+            document.getElementById('rank-badge').innerText = ranks[Math.floor((pct/10))] || "👶 Hello World";
             renderHeatmap(heatmapCounts);
         }
 
