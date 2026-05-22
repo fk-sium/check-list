@@ -1,0 +1,29 @@
+body{
+background:#f5f7fa;
+font-family:Segoe UI,sans-serif;
+}
+
+.login-container{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.login-card{
+width:400px;
+padding:30px;
+background:white;
+border-radius:12px;
+box-shadow:0 0 20px rgba(0,0,0,.1);
+text-align:center;
+}
+
+.btn-primary{
+background:#0b1f4d;
+border:none;
+}
+
+.btn-primary:hover{
+background:#132f6b;
+}
